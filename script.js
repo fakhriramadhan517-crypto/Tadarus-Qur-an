@@ -13,13 +13,15 @@ ws.onmessage = (event) => {
 // Login logic
 document.getElementById('loginForm')?.addEventListener('submit', function(e) {
   e.preventDefault();
-  const username = document.getElementById('username').value;
-  const password = document.getElementById('password').value;
+
+  // Ambil input dari form
+  const username = document.getElementById('username').value.trim().toLowerCase();
+  const password = document.getElementById('password').value.trim();
   const error = document.getElementById('error');
 
-  // Hardcoded credentials (untuk demo - tambah lebih banyak user)
+  // Daftar user & password (semua username disamakan lowercase)
   const users = {
-    Admin: 'Admin123',
+    admin: 'Admin123',
     delvina: 'vina123',
     khailana: 'kila123', 
     niken: 'niken123',  
@@ -33,10 +35,10 @@ document.getElementById('loginForm')?.addEventListener('submit', function(e) {
     mardatila: 'tila123',
   };
 
-
-  if (users[username] === password) {
+  // Cek login
+  if (users[username] && users[username] === password) {
     localStorage.setItem('user', username);
-    if (username === 'Admin') {
+    if (username === 'admin') {
       window.location.href = 'admin.html';
     } else {
       window.location.href = 'user.html';
