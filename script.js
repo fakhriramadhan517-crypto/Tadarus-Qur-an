@@ -23,9 +23,17 @@ document.getElementById('loginForm')?.addEventListener('submit', function(e) {
     delvina: 'vina123',
     khailana: 'kila123', 
     niken: 'niken123',  
+    welmita: 'wel123',
+    sulthan: 'sultan123',
+    selvina: 'selvina123',
+    pia: 'pia123',
+    yuni: 'yuni123',
+    asra: 'asra123',
+    salsabila: 'salsa123',
+    mardatila: 'tila123',
   };
 
-  
+
   if (users[username] === password) {
     localStorage.setItem('user', username);
     if (username === 'Admin') {
