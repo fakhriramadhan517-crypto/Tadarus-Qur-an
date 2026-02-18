@@ -33,6 +33,8 @@ document.getElementById('loginForm')?.addEventListener('submit', function(e) {
     asra: 'asra123',
     salsabila: 'salsa123',
     mardatila: 'tila123',
+    dea: 'dea123',
+    mutia: 'mutia123',
   };
 
   // Cek login
