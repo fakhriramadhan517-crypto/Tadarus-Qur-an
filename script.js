@@ -19,9 +19,11 @@ document.getElementById('loginForm')?.addEventListener('submit', function(e) {
   const password = document.getElementById('password').value.trim();
   const error = document.getElementById('error');
 
-  // Daftar user & password (semua username disamakan lowercase)
+    // Daftar user & password (semua username disamakan lowercase)
   const users = {
     admin: 'Admin123',
+    dea: 'dea123',
+    mutia: 'mutia123',
     delvina: 'vina123',
     khailana: 'kila123', 
     niken: 'niken123',  
@@ -33,11 +35,9 @@ document.getElementById('loginForm')?.addEventListener('submit', function(e) {
     asra: 'asra123',
     salsabila: 'salsa123',
     mardatila: 'tila123',
-    dea: 'dea123',
-    mutia: 'mutia123',
   };
 
-  // Cek login
+    // Cek login
   if (users[username] && users[username] === password) {
     localStorage.setItem('user', username);
     if (username === 'admin') {
