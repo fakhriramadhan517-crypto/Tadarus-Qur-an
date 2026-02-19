@@ -72,19 +72,21 @@ document.getElementById('progressForm')?.addEventListener('submit', async functi
   }
 
   // Kirim ke API
-  const response = await fetch('/save-progress', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, surat, halaman, juz, tanggal })
-  });
-
-  if (response.ok) {
-    alert('Progres berhasil disimpan dan dikirim ke admin!');
-    loadUserProgress();
-  } else {
-    alert('Gagal menyimpan progres');
-  }
+const response = await fetch('/save-progress', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ username, surat, halaman, juz, tanggal })
 });
+
+const result = await response.text();
+console.log('Save progress response:', response.status, result);
+
+if (response.ok) {
+  alert('Progres berhasil disimpan dan dikirim ke admin!');
+  loadUserProgress();
+} else {
+  alert('Gagal menyimpan progres: ' + result);
+}});
 
 // Load progres untuk pengguna
 async function loadUserProgress() {
