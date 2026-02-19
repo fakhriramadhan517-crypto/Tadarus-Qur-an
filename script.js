@@ -1,4 +1,4 @@
-// ================== AUTH ==================
+// ====== AUTH ======
 if (location.pathname.includes('user.html')) {
   if (!localStorage.getItem('user')) {
     alert('Silakan login');
@@ -6,12 +6,13 @@ if (location.pathname.includes('user.html')) {
   }
 }
 
-// ================== LOGIN ==================
-document.getElementById('loginForm')?.addEventListener('submit', e => {
+// ====== LOGIN ======
+document.getElementById('loginForm')?.addEventListener('submit', (e) => {
   e.preventDefault();
 
-  const u = username.value.trim().toLowerCase();
-  const p = password.value.trim();
+  const u = document.getElementById('username').value.trim().toLowerCase();
+  const p = document.getElementById('password').value.trim();
+  const err = document.getElementById('error');
 
   const users = {
     admin: 'Admin123',
@@ -19,57 +20,75 @@ document.getElementById('loginForm')?.addEventListener('submit', e => {
     mutia: 'mutia123',
     delvina: 'vina123',
     khailana: 'kila123',
-    niken: 'niken123'
+    niken: 'niken123',
+    welmita: 'wel123',
+    sulthan: 'sultan123',
+    selvina: 'selvina123',
+    pia: 'pia123',
+    yuni: 'yuni123',
+    asra: 'asra123',
+    salsabila: 'salsa123',
+    mardatila: 'tila123'
   };
 
   if (users[u] === p) {
     localStorage.setItem('user', u);
-    location.href = u === 'admin' ? 'admin.html' : 'user.html';
+    location.href = (u === 'admin') ? 'admin.html' : 'user.html';
   } else {
-    error.textContent = 'Username atau password salah';
+    err.textContent = 'Username atau password salah';
   }
 });
 
-// ================== SIMPAN PROGRES ==================
-document.getElementById('progressForm')?.addEventListener('submit', e => {
+// ====== SIMPAN PROGRES (GITHUB) ======
+document.getElementById('progressForm')?.addEventListener('submit', (e) => {
   e.preventDefault();
 
   const user = localStorage.getItem('user');
-  const allData = JSON.parse(localStorage.getItem('progressData')) || {};
+  if (!user) return alert('Belum login');
 
-  if (!allData[user]) allData[user] = [];
+  const suratEl = document.getElementById('surat');
+  const halamanEl = document.getElementById('halaman');
+  const juzEl = document.getElementById('juz');
 
-  allData[user].push({
-    surat: surat.value,
-    halaman: halaman.value,
-    juz: juz.value,
+  if (!suratEl || !halamanEl || !juzEl) {
+    return alert('Form tidak lengkap');
+  }
+
+  const store = JSON.parse(localStorage.getItem('progressData') || '{}');
+  if (!store[user]) store[user] = [];
+
+  store[user].push({
+    surat: suratEl.value,
+    halaman: Number(halamanEl.value),
+    juz: Number(juzEl.value),
     tanggal: new Date().toLocaleString('id-ID')
   });
 
-  localStorage.setItem('progressData', JSON.stringify(allData));
-
+  localStorage.setItem('progressData', JSON.stringify(store));
   alert('Progres tersimpan');
+
   loadUserProgress();
   e.target.reset();
 });
 
-// ================== LOAD USER ==================
+// ====== LOAD USER ======
 function loadUserProgress() {
   const user = localStorage.getItem('user');
-  const allData = JSON.parse(localStorage.getItem('progressData')) || {};
-  const data = allData[user] || [];
+  const store = JSON.parse(localStorage.getItem('progressData') || '{}');
+  const list = store[user] || [];
+  if (!list.length) return;
 
-  if (!data.length) return;
-
-  const last = data[data.length - 1];
-  latestProgress.innerHTML = `
-    <p>${last.surat} | Hal ${last.halaman} | Juz ${last.juz}</p>
-  `;
+  const last = list[list.length - 1];
+  const latest = document.getElementById('latestProgress');
+  if (latest) {
+    latest.innerHTML = `<p>${last.surat} | Hal ${last.halaman} | Juz ${last.juz}</p>`;
+  }
 
   const tbody = document.querySelector('#historyTable tbody');
+  if (!tbody) return;
   tbody.innerHTML = '';
 
-  data.forEach(item => {
+  list.forEach(item => {
     tbody.innerHTML += `
       <tr>
         <td>${item.tanggal}</td>
@@ -79,27 +98,28 @@ function loadUserProgress() {
       </tr>`;
   });
 
-  const surahs = [...new Set(data.map(i => i.surat))];
-  const juzs = [...new Set(data.map(i => i.juz))];
+  const surahs = [...new Set(list.map(i => i.surat))];
+  const juzs = [...new Set(list.map(i => i.juz))];
 
-  readSurahs.textContent = surahs.join(', ');
-  readJuzs.textContent = juzs.join(', ');
-  totalSurahs.textContent = surahs.length;
-  totalJuzs.textContent = juzs.length;
+  document.getElementById('readSurahs').textContent = surahs.join(', ');
+  document.getElementById('readJuzs').textContent = juzs.join(', ');
+  document.getElementById('totalSurahs').textContent = surahs.length;
+  document.getElementById('totalJuzs').textContent = juzs.length;
 }
 
-// ================== ADMIN ==================
+// ====== ADMIN ======
 function loadAllProgress() {
-  const allData = JSON.parse(localStorage.getItem('progressData')) || {};
-  allProgress.innerHTML = '';
+  const store = JSON.parse(localStorage.getItem('progressData') || '{}');
+  const box = document.getElementById('allProgress');
+  if (!box) return;
 
-  for (const user in allData) {
-    allProgress.innerHTML += `<h3>${user}</h3>`;
-    allData[user].forEach(i => {
-      allProgress.innerHTML += `
-        <p>${i.tanggal} — ${i.surat} (Hal ${i.halaman}, Juz ${i.juz})</p>`;
+  box.innerHTML = '';
+  Object.keys(store).forEach(u => {
+    box.innerHTML += `<h3>${u}</h3>`;
+    store[u].forEach(i => {
+      box.innerHTML += `<p>${i.tanggal} — ${i.surat} (Hal ${i.halaman}, Juz ${i.juz})</p>`;
     });
-  }
+  });
 }
 
 document.getElementById('resetAllBtn')?.addEventListener('click', () => {
@@ -109,12 +129,11 @@ document.getElementById('resetAllBtn')?.addEventListener('click', () => {
   }
 });
 
-// ================== LOGOUT ==================
+// ====== INIT ======
+if (location.pathname.includes('user.html')) loadUserProgress();
+if (location.pathname.includes('admin.html')) loadAllProgress();
+
 function logout() {
   localStorage.removeItem('user');
   location.href = 'index.html';
 }
-
-// ================== INIT ==================
-if (location.pathname.includes('user.html')) loadUserProgress();
-if (location.pathname.includes('admin.html')) loadAllProgress();
