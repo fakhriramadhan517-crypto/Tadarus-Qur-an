@@ -16,7 +16,7 @@ app.use(bodyParser.json());
 app.use(express.static('.')); // Serve static files (CSS, JS, HTML)
 
 // WebSocket server
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ port: 3000 });
 wss.on('connection', (ws) => {
   console.log('Client connected');
 });
