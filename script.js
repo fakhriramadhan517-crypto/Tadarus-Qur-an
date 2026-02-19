@@ -1,3 +1,12 @@
+// Proteksi halaman user
+if (window.location.pathname.includes('user.html')) {
+  const user = localStorage.getItem('user');
+  if (!user) {
+    alert('Silakan login terlebih dahulu');
+    window.location.href = 'index.html';
+  }
+}
+
 // WebSocket untuk notifikasi real-time
 const ws = new WebSocket('ws://localhost:3000');
 ws.onmessage = (event) => {
@@ -57,36 +66,46 @@ document.getElementById('resetAllBtn')?.addEventListener('click', function() {
 });
 
 // Progress form logic (untuk user.html)
-document.getElementById('progressForm')?.addEventListener('submit', async function(e) {
+document.getElementById('progressForm')?.addEventListener('submit', async function (e) {
   e.preventDefault();
-  const username = localStorage.getItem('user');
-  const surat = document.getElementById('surat').value;
-  const halaman = parseInt(document.getElementById('halaman').value);
-  const juz = parseInt(document.getElementById('juz').value);
-  const tanggal = new Date().toISOString();
 
-  // Validasi
-  if (juz < 1 || juz > 30 || halaman < 1 || halaman > 604) {
-    alert('Input tidak valid!');
+  const username = localStorage.getItem('user');
+  if (!username) {
+    alert('User belum login');
     return;
   }
 
-  // Kirim ke API
-const response = await fetch('/save-progress', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ username, surat, halaman, juz, tanggal })
+  const surat = document.getElementById('surat').value;
+  const halaman = Number(document.getElementById('halaman').value);
+  const juz = Number(document.getElementById('juz').value);
+  const tanggal = new Date().toISOString();
+
+  if (!surat || halaman < 1 || halaman > 604 || juz < 1 || juz > 30) {
+    alert('Input tidak valid');
+    return;
+  }
+
+  try {
+    const response = await fetch('/save-progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, surat, halaman, juz, tanggal })
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(err);
+    }
+
+    alert('Progres berhasil disimpan');
+    loadUserProgress();
+    this.reset();
+
+  } catch (err) {
+    alert('Gagal menyimpan progres: ' + err.message);
+  }
 });
 
-const result = await response.text();
-console.log('Save progress response:', response.status, result);
-
-if (response.ok) {
-  alert('Progres berhasil disimpan dan dikirim ke admin!');
-  loadUserProgress();
-} else {
-  alert('Gagal menyimpan progres: ' + result);
-}});
 
 // Load progres untuk pengguna
 async function loadUserProgress() {
@@ -109,12 +128,16 @@ async function loadUserProgress() {
     document.getElementById('totalJuzs').textContent = juzs.size;
 
     const tbody = document.querySelector('#historyTable tbody');
-    tbody.innerHTML = '';
-    data.forEach(item => {
-      tbody.innerHTML += `<tr><td>${item.tanggal}</td><td>${item.surat}</td><td>${item.halaman}</td><td>${item.juz}</td></tr>`;
-    });
-  }
-}
+      tbody.innerHTML += `
+<tr>
+  <td>${new Date(item.tanggal).toLocaleString('id-ID')}</td>
+  <td>${item.surat}</td>
+  <td>${item.halaman}</td>
+  <td>${item.juz}</td>
+</tr>`;
+}};
+  
+
 
 // Load semua progres untuk admin
 async function loadAllProgress() {
@@ -146,3 +169,12 @@ if (window.location.pathname.includes('user.html')) {
 } else if (window.location.pathname.includes('admin.html')) {
   loadAllProgress();
 }
+async function resetAllProgress() {
+  const response = await fetch('/reset-progress', { method: 'POST' });
+  if (response.ok) {
+    alert('Semua progres berhasil direset');
+    loadAllProgress();
+  }
+}
+ws.onopen = () => console.log('WebSocket connected');
+ws.onerror = (e) => console.error('WebSocket error', e);
