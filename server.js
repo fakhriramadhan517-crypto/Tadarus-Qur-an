@@ -27,29 +27,29 @@ app.get('/', (req, res) => {
 // Endpoint simpan progres
 app.post('/save-progress', (req, res) => {
   const { username, surat, halaman, juz, tanggal } = req.body;
+
   if (!username || !surat || !halaman || !juz || !tanggal) {
-    return res.status(400).json({ error: 'Data tidak lengkap' });
+    return res.status(400).send('Data tidak lengkap');
   }
 
-  let data = JSON.parse(fs.readFileSync(PROGRESS_FILE, 'utf8'));
+  let data = {};
+  if (fs.existsSync(PROGRESS_FILE)) {
+    data = JSON.parse(fs.readFileSync(PROGRESS_FILE, 'utf8'));
+  }
+
   if (!data[username]) data[username] = [];
   data[username].push({ surat, halaman, juz, tanggal });
 
   fs.writeFileSync(PROGRESS_FILE, JSON.stringify(data, null, 2));
 
-  // Kirim notifikasi ke admin via WebSocket
-  wss.clients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify({
-        type: 'progress_saved',
-        message: `Progres baru dari ${username}: ${surat}, Halaman ${halaman}, Juz ${juz}`
-      }));
-    }
-  });
+  console.log('✅ Progres tersimpan ke progress.json');
 
-  console.log(`Progres disimpan: ${username} - ${surat}`);
-  res.json({ message: 'Progres berhasil disimpan' });
+  res.status(200).json({
+    success: true,
+    message: 'Progres berhasil disimpan'
+  });
 });
+
 
 // Endpoint ambil semua progres (admin)
 app.get('/get-progress', (req, res) => {

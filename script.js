@@ -87,18 +87,21 @@ document.getElementById('progressForm')?.addEventListener('submit', async functi
 
   try {
     const response = await fetch('/save-progress', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, surat, halaman, juz, tanggal })
-    });
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ username, surat, halaman, juz, tanggal })
+});
 
-    if (!response.ok) {
-      const err = await response.text();
-      throw new Error(err);
-    }
+if (!response.ok) {
+  const err = await response.text();
+  throw new Error(err);
+}
 
-    alert('Progres berhasil disimpan');
-    loadUserProgress();
+const result = await response.json();
+console.log(result.message);
+
+alert('Progres berhasil disimpan');
+loadUserProgress();
     this.reset();
 
   } catch (err) {
