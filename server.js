@@ -3,92 +3,68 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
-const WebSocket = require('ws');
 
 const app = express();
 const PORT = 3000;
 const PROGRESS_FILE = path.join(__dirname, 'progress.json');
 
-// Middleware
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static('.')); // Serve static files (CSS, JS, HTML)
+app.use(express.static(__dirname));
 
-// Inisialisasi file progress.json
+// Inisialisasi file progress.json jika belum ada
 if (!fs.existsSync(PROGRESS_FILE)) {
   fs.writeFileSync(PROGRESS_FILE, JSON.stringify({}));
 }
 
-// Endpoint halaman utama
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Endpoint simpan progres
+// Endpoint untuk menyimpan progres
 app.post('/save-progress', (req, res) => {
+  console.log("Data diterima:", req.body); // DEBUG
   const { username, surat, halaman, juz, tanggal } = req.body;
-
   if (!username || !surat || !halaman || !juz || !tanggal) {
-    return res.status(400).send('Data tidak lengkap');
+    return res.status(400).json({ error: 'Data tidak lengkap' });
   }
 
-  let data = {};
-  if (fs.existsSync(PROGRESS_FILE)) {
-    data = JSON.parse(fs.readFileSync(PROGRESS_FILE, 'utf8'));
-  }
-
+  let data = JSON.parse(fs.readFileSync(PROGRESS_FILE, 'utf8'));
   if (!data[username]) data[username] = [];
   data[username].push({ surat, halaman, juz, tanggal });
 
   fs.writeFileSync(PROGRESS_FILE, JSON.stringify(data, null, 2));
-
-  console.log('✅ Progres tersimpan ke progress.json');
-
-  res.status(200).json({
-    success: true,
-    message: 'Progres berhasil disimpan'
-  });
+  res.json({ message: 'Progres berhasil disimpan' });
 });
 
-
-// Endpoint ambil semua progres (admin)
+// Endpoint untuk mendapatkan semua progres (admin)
 app.get('/get-progress', (req, res) => {
   const data = JSON.parse(fs.readFileSync(PROGRESS_FILE, 'utf8'));
   res.json(data);
 });
 
-// Endpoint ambil progres user tertentu
+// Endpoint untuk mendapatkan progres user tertentu
 app.get('/get-progress/:username', (req, res) => {
   const username = req.params.username;
   const data = JSON.parse(fs.readFileSync(PROGRESS_FILE, 'utf8'));
   res.json(data[username] || []);
 });
 
-// Endpoint reset semua progres
+// Endpoint untuk reset semua progres (admin)
 app.post('/reset-progress', (req, res) => {
   fs.writeFileSync(PROGRESS_FILE, JSON.stringify({}));
-  res.json({ message: 'Semua data progres berhasil direset' });
+  res.json({ message: 'Semua progres berhasil direset' });
 });
 
-// Endpoint hapus progres user tertentu
+// Endpoint untuk hapus progres user tertentu (admin)
 app.delete('/delete-progress/:username', (req, res) => {
   const username = req.params.username;
   let data = JSON.parse(fs.readFileSync(PROGRESS_FILE, 'utf8'));
   if (data[username]) {
     delete data[username];
     fs.writeFileSync(PROGRESS_FILE, JSON.stringify(data, null, 2));
-    res.json({ message: `Data progres untuk ${username} berhasil dihapus` });
+    res.json({ message: `Progres untuk ${username} dihapus` });
   } else {
-    res.status(404).json({ error: 'Pengguna tidak ditemukan' });
+    res.status(404).json({ error: 'User tidak ditemukan' });
   }
 });
 
-// Jalankan server HTTP + WebSocket
-const server = app.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`Server berjalan di http://localhost:${PORT}`);
-});
-
-const wss = new WebSocket.Server({ server });
-wss.on('connection', (ws) => {
-  console.log('Client WebSocket connected');
 });
